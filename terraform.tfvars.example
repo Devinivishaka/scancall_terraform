@@ -1,0 +1,32 @@
+# =========================================================
+# ScanCall — Dev Environment Terraform Variables
+# =========================================================
+# Copy this file to terraform.tfvars and fill in your values.
+# DO NOT commit terraform.tfvars to version control.
+
+aws_region   = "eu-west-1"  # Ireland — your existing AWS account region
+environment  = "dev"
+project_name = "scancall"
+
+# ---- Networking ----
+vpc_cidr      = "10.0.0.0/16"
+# true = single NAT Gateway (saves ~$30/month in dev; use false for staging/prod HA)
+single_nat_gateway = true
+
+# ---- Database ----
+db_name            = "scancall_phase1"
+db_master_username = "scancalladmin"
+# Password is auto-generated and stored in Secrets Manager — no need to set it here
+
+# ---- SSH Key (LiveKit EC2) ----
+# Leave empty to auto-generate a .pem file in terraform/
+# Or paste your public key: ssh_public_key = "ssh-rsa AAAA..."
+ssh_public_key = ""
+
+# ---- Domain & SSL ----
+# Leave empty to use plain HTTP via the ALB DNS name (fine for dev)
+# For staging/prod: set to your Route53-managed domain e.g. "api.scancall.com"
+domain_name = ""
+
+# ---- WAF (set to true for staging/prod) ----
+enable_waf = false
