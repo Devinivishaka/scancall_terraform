@@ -65,16 +65,16 @@ locals {
     prod    = 2
   }
 
-  # ECS CPU per environment (256 = 0.25 vCPU, 512 = 0.5 vCPU)
+  # ECS CPU per environment (256 = 0.25 vCPU, 512 = 0.5 vCPU, 1024 = 1 vCPU)
   ecs_cpu = {
-    dev     = { api_gateway = 256, core_service = 256, call_service = 256 }
+    dev     = { api_gateway = 256, core_service = 512, call_service = 512 }
     staging = { api_gateway = 256, core_service = 512, call_service = 512 }
     prod    = { api_gateway = 512, core_service = 1024, call_service = 1024 }
   }
 
   # ECS Memory per environment (MB)
   ecs_memory = {
-    dev     = { api_gateway = 512, core_service = 512, call_service = 512 }
+    dev     = { api_gateway = 512, core_service = 1024, call_service = 1024 }
     staging = { api_gateway = 512, core_service = 1024, call_service = 1024 }
     prod    = { api_gateway = 1024, core_service = 2048, call_service = 2048 }
   }

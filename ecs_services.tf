@@ -21,16 +21,17 @@ resource "aws_ecs_task_definition" "api_gateway" {
       ]
 
       environment = [
-        { name = "SERVER_PORT",       value = "8000" },
-        { name = "REDIS_HOST",        value = aws_elasticache_cluster.redis.cache_nodes[0].address },
-        { name = "REDIS_PORT",        value = "6379" },
-        { name = "CORE_SERVICE_URL",  value = "http://core-service.${aws_service_discovery_private_dns_namespace.internal.name}:8080" },
-        { name = "CALLING_SERVICE_URL", value = "http://call-service.${aws_service_discovery_private_dns_namespace.internal.name}:8081" },
-        { name = "CORS_ALLOWED_ORIGINS", value = "http://localhost:3000,https://scancall.vercel.app,https://dev-s.d24yfw60t6z2zl.amplifyapp.com,https://dev-s.d2j3adjr6nsyxs.amplifyapp.com,https://dev-s.d4cyjimayhwag.amplifyapp.com" }
+        { name = "SERVER_PORT",          value = "8000" },
+        { name = "REDIS_HOST",           value = aws_elasticache_cluster.redis.cache_nodes[0].address },
+        { name = "REDIS_PORT",           value = "6379" },
+        { name = "CORE_SERVICE_URL",     value = "http://core-service.${aws_service_discovery_private_dns_namespace.internal.name}:8080" },
+        { name = "CALLING_SERVICE_URL",  value = "http://call-service.${aws_service_discovery_private_dns_namespace.internal.name}:8081" },
+        { name = "CORS_ALLOWED_ORIGINS", value = var.cors_allowed_origins }
       ]
 
       secrets = [
-        { name = "INTERNAL_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:internal_api_key::" }
+        { name = "INTERNAL_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:internal_api_key::" },
+        { name = "JWT_SECRET",       valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:jwt_secret::" }
       ]
 
       logConfiguration = {
@@ -115,19 +116,33 @@ resource "aws_ecs_task_definition" "core_service" {
       ]
 
       environment = [
-        { name = "SERVER_PORT",             value = "8080" },
-        { name = "SPRING_DATASOURCE_URL",   value = "jdbc:postgresql://${aws_db_instance.postgres.endpoint}/${var.db_name}" },
+        { name = "SERVER_PORT",               value = "8080" },
+        { name = "SPRING_DATASOURCE_URL",     value = "jdbc:postgresql://${aws_db_instance.postgres.endpoint}/${var.db_name}" },
         { name = "SPRING_DATASOURCE_USERNAME", value = var.db_master_username },
-        { name = "APP_BASE_URL",            value = "http://${aws_lb.main.dns_name}" },
-        { name = "WEBSOCKET_URL",           value = "ws://${aws_lb.main.dns_name}/ws" },
-        { name = "AWS_REGION",              value = var.aws_region },
-        { name = "SPRING_JPA_DDL_AUTO",     value = var.environment == "prod" ? "validate" : "update" }
+        { name = "SPRING_JPA_DDL_AUTO",       value = var.environment == "prod" ? "validate" : "update" },
+        { name = "CALL_SERVICE_URL",          value = "http://call-service.${aws_service_discovery_private_dns_namespace.internal.name}:8081" },
+        { name = "APP_BASE_URL",              value = var.domain_name != "" ? "https://${var.domain_name}" : "http://${aws_lb.main.dns_name}" },
+        { name = "WEBSOCKET_URL",             value = var.domain_name != "" ? "wss://${var.domain_name}/ws" : "ws://${aws_lb.main.dns_name}/ws" },
+        { name = "AWS_REGION",                value = var.aws_region },
+        { name = "ADMIN_FRONTEND_URL",        value = var.admin_frontend_url },
+        { name = "FRONTEND_URL",              value = var.frontend_url },
+        { name = "SUPER_ADMIN_FRONTEND_URL",  value = var.super_admin_frontend_url },
+        { name = "JWT_EXPIRATION",            value = "21600000" },
+        { name = "JWT_REFRESH_EXPIRATION",    value = "7776000000" },
+        { name = "MAIL_FROM",                 value = var.mail_from },
+        { name = "MAIL_FROM_NAME",            value = var.mail_from_name },
+        { name = "RELAY_API_URL",             value = var.relay_api_url },
+        { name = "SMS_API_URL",               value = var.sms_api_url }
       ]
 
       secrets = [
         { name = "SPRING_DATASOURCE_PASSWORD", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:password::" },
         { name = "JWT_SECRET",                 valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:jwt_secret::" },
-        { name = "INTERNAL_API_KEY",           valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:internal_api_key::" }
+        { name = "INTERNAL_API_KEY",           valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:internal_api_key::" },
+        { name = "AWS_ACCESS_KEY",             valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:AWS_ACCESS_KEY::" },
+        { name = "AWS_SECRET_KEY",             valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:AWS_SECRET_KEY::" },
+        { name = "RELAY_API_KEY",              valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:RELAY_API_KEY::" },
+        { name = "SMS_API_KEY",                valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:SMS_API_KEY::" }
       ]
 
       logConfiguration = {
@@ -208,16 +223,31 @@ resource "aws_ecs_task_definition" "call_service" {
       ]
 
       environment = [
-        { name = "PORT",             value = "8081" },
-        { name = "CORE_SERVICE_URL", value = "http://core-service.${aws_service_discovery_private_dns_namespace.internal.name}:8080" },
-        { name = "LIVEKIT_URL",      value = "ws://${aws_eip.livekit.public_ip}:7880" },
-        { name = "WS_PATH",          value = "/ws" }
+        { name = "PORT",                            value = "8081" },
+        { name = "CORE_SERVICE_URL",                value = "http://core-service.${aws_service_discovery_private_dns_namespace.internal.name}:8080" },
+        { name = "LIVEKIT_URL",                     value = var.livekit_url != "" ? var.livekit_url : (var.domain_name != "" ? "wss://media.${var.domain_name}" : "ws://${aws_eip.livekit.public_ip}:7880") },
+        { name = "WS_PATH",                         value = "/ws" },
+        { name = "ACTIVE_CALL_DISCONNECT_GRACE_MS", value = "30000" },
+        { name = "CALL_DELIVERY_TIMEOUT_MS",        value = "30000" },
+        { name = "CALL_RING_TIMEOUT_MS",            value = "30000" },
+        { name = "WS_PING_INTERVAL_MS",             value = "2000" },
+        { name = "WS_PONG_TIMEOUT_MS",              value = "2000" },
+        { name = "APNS_IP_FAMILY",                  value = "4" },
+        { name = "SPRING_DATASOURCE_URL",           value = "jdbc:postgresql://${aws_db_instance.postgres.endpoint}/${var.db_name}" },
+        { name = "SPRING_DATASOURCE_USERNAME",      value = var.db_master_username }
       ]
 
       secrets = [
-        { name = "LIVEKIT_API_KEY",    valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:livekit_api_key::" },
-        { name = "LIVEKIT_API_SECRET", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:livekit_api_secret::" },
-        { name = "INTERNAL_API_KEY",   valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:internal_api_key::" }
+        { name = "INTERNAL_API_KEY",           valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:internal_api_key::" },
+        { name = "LIVEKIT_API_KEY",            valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:livekit_api_key::" },
+        { name = "LIVEKIT_API_SECRET",         valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:livekit_api_secret::" },
+        { name = "SERVICE_ACCOUNT_PATH",       valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:SERVICE_ACCOUNT_PATH::" },
+        { name = "APNS_AUTH_KEY",              valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:APNS_AUTH_KEY::" },
+        { name = "APNS_BUNDLE_ID",             valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:APNS_BUNDLE_ID::" },
+        { name = "APNS_HOST",                  valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:APNS_HOST::" },
+        { name = "APNS_KEY_ID",                valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:APNS_KEY_ID::" },
+        { name = "APNS_TEAM_ID",               valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:APNS_TEAM_ID::" },
+        { name = "SPRING_DATASOURCE_PASSWORD", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:password::" }
       ]
 
       logConfiguration = {
@@ -266,6 +296,7 @@ resource "aws_ecs_service" "call_service" {
 
   depends_on = [
     aws_instance.livekit,
+    aws_db_instance.postgres,
     aws_iam_role_policy_attachment.ecs_execution_standard,
     aws_iam_role_policy_attachment.ecs_secrets_attach,
   ]

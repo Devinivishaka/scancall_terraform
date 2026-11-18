@@ -56,7 +56,7 @@ output "livekit_public_ip" {
 
 output "livekit_wss_url" {
   description = "LiveKit WebSocket URL for the Call Service (LIVEKIT_URL)"
-  value       = "ws://${aws_eip.livekit.public_ip}:7880"
+  value       = var.livekit_url != "" ? var.livekit_url : (var.domain_name != "" ? "wss://media.${var.domain_name}" : "ws://${aws_eip.livekit.public_ip}:7880")
 }
 
 output "livekit_ssh_command" {

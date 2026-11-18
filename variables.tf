@@ -82,9 +82,64 @@ variable "ssh_public_key" {
 
 # --- Domain & SSL ---
 variable "domain_name" {
-  description = "Optional Route53 domain name (e.g. api.yourdomain.com). Leave empty to use plain HTTP ALB."
+  description = "Optional domain name (e.g. scancalldev.protonestpcb.store or api.scancalldev.protonestpcb.store)"
   type        = string
   default     = ""
+}
+
+variable "livekit_url" {
+  description = "Optional custom LiveKit WebSocket URL (e.g. wss://media.scancalldev.protonestpcb.store). If empty, auto-derived from domain or EIP."
+  type        = string
+  default     = ""
+}
+
+# --- Application Configuration ---
+variable "cors_allowed_origins" {
+  description = "Comma-separated list of allowed CORS origins"
+  type        = string
+  default     = "http://localhost:3000,https://scancall.vercel.app,https://dev-s.d24yfw60t6z2zl.amplifyapp.com,https://dev-s.d2j3adjr6nsyxs.amplifyapp.com,https://dev-s.d4cyjimayhwag.amplifyapp.com"
+}
+
+variable "admin_frontend_url" {
+  description = "Admin frontend URL"
+  type        = string
+  default     = "https://dev-s.d24yfw60t6z2zl.amplifyapp.com"
+}
+
+variable "frontend_url" {
+  description = "User frontend URL"
+  type        = string
+  default     = "https://dev-s.d24yfw60t6z2zl.amplifyapp.com"
+}
+
+variable "super_admin_frontend_url" {
+  description = "Super admin frontend URL"
+  type        = string
+  default     = "https://dev-s.d4cyjimayhwag.amplifyapp.com"
+}
+
+variable "mail_from" {
+  description = "From email address for system emails"
+  type        = string
+  default     = "Scancall@entryphone.co.uk"
+}
+
+variable "mail_from_name" {
+  description = "From email display name"
+  type        = string
+  default     = "ScanCall"
+}
+
+variable "relay_api_url" {
+  description = "Relay controller endpoint URL"
+  type        = string
+  default     = "https://ops.entryphone.co.uk/ScanCall/mqtt/api/v1/trigger_relay.aspx"
+}
+
+variable "sms_api_url" {
+  description = "SMS provider endpoint URL"
+  type        = string
+  default     = "https://ops.entryphone.co.uk/sms/api/v1/send_sms.aspx"
 }
 
 # --- WAF ---
