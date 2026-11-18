@@ -30,3 +30,21 @@ domain_name = ""
 
 # ---- WAF (set to true for staging/prod) ----
 enable_waf = false
+
+# ---- Optional Application Secrets ----
+# Leave empty to let Terraform generate random keys or manage them directly in AWS Secrets Manager.
+# Do NOT commit production secrets to Git.
+# internal_api_key     = ""
+# jwt_secret           = ""
+# livekit_api_key      = ""
+# livekit_api_secret   = ""
+# service_account_path = ""
+# apns_auth_key        = ""
+# apns_team_id         = ""
+# apns_key_id          = ""
+# apns_bundle_id       = "com.protonest.scancall"
+# apns_host            = "https://api.push.apple.com"
+# app_aws_access_key   = ""
+# app_aws_secret_key   = ""
+# sms_api_key          = ""
+# relay_api_key        = ""

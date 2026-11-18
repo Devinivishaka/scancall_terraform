@@ -86,3 +86,100 @@ variable "enable_waf" {
   type        = bool
   default     = false
 }
+
+# --- Application Secrets (Leave empty to use defaults/auto-generation or manage via Secrets Manager) ---
+variable "internal_api_key" {
+  description = "Shared internal API key across services. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "JWT signing secret. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "livekit_api_key" {
+  description = "LiveKit API key. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "livekit_api_secret" {
+  description = "LiveKit API secret. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "service_account_path" {
+  description = "Firebase Service Account JSON string for push notifications"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "apns_auth_key" {
+  description = "Apple Push Notification private auth key (.p8 format)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "apns_team_id" {
+  description = "Apple Developer Team ID for APNs"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "apns_key_id" {
+  description = "Apple Push Notification Key ID"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "apns_bundle_id" {
+  description = "Apple App Bundle ID"
+  type        = string
+  default     = "com.protonest.scancall"
+}
+
+variable "apns_host" {
+  description = "Apple Push Notification Service Host URL"
+  type        = string
+  default     = "https://api.push.apple.com"
+}
+
+variable "app_aws_access_key" {
+  description = "AWS Access Key ID used by backend application"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "app_aws_secret_key" {
+  description = "AWS Secret Access Key used by backend application"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "sms_api_key" {
+  description = "SMS provider API key"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "relay_api_key" {
+  description = "Relay webhook / service API key"
+  type        = string
+  default     = ""
+  sensitive   = true
+}

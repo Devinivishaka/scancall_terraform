@@ -66,25 +66,39 @@ resource "aws_security_group" "call_service" {
   description = "Security group for Calling Service ECS tasks"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description     = "Inbound from API Gateway on port 8081"
-    from_port       = 8081
-    to_port         = 8081
-    protocol        = "tcp"
-    security_groups = [aws_security_group.api_gateway.id]
-  }
-
-  egress {
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "${var.project_name}-call-service-sg-${var.environment}"
   }
+}
+
+resource "aws_security_group_rule" "call_service_ingress_api_gw" {
+  type                     = "ingress"
+  description              = "Inbound from API Gateway on port 8081"
+  from_port                = 8081
+  to_port                  = 8081
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.api_gateway.id
+  security_group_id        = aws_security_group.call_service.id
+}
+
+resource "aws_security_group_rule" "call_service_ingress_core" {
+  type                     = "ingress"
+  description              = "Inbound from Core service on port 8081"
+  from_port                = 8081
+  to_port                  = 8081
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.core_service.id
+  security_group_id        = aws_security_group.call_service.id
+}
+
+resource "aws_security_group_rule" "call_service_egress_all" {
+  type              = "egress"
+  description       = "Allow all outbound traffic"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.call_service.id
 }
 
 # 4. Core Service ECS Security Group
@@ -93,33 +107,39 @@ resource "aws_security_group" "core_service" {
   description = "Security group for Core Service ECS tasks"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description     = "Inbound from API Gateway on port 8080"
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.api_gateway.id]
-  }
-
-  ingress {
-    description     = "Inbound from Calling Service on port 8080"
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.call_service.id]
-  }
-
-  egress {
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "${var.project_name}-core-service-sg-${var.environment}"
   }
+}
+
+resource "aws_security_group_rule" "core_service_ingress_api_gw" {
+  type                     = "ingress"
+  description              = "Inbound from API Gateway on port 8080"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.api_gateway.id
+  security_group_id        = aws_security_group.core_service.id
+}
+
+resource "aws_security_group_rule" "core_service_ingress_call_svc" {
+  type                     = "ingress"
+  description              = "Inbound from Calling Service on port 8080"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.call_service.id
+  security_group_id        = aws_security_group.core_service.id
+}
+
+resource "aws_security_group_rule" "core_service_egress_all" {
+  type              = "egress"
+  description       = "Allow all outbound traffic"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.core_service.id
 }
 
 # 5. Aurora PostgreSQL Security Group

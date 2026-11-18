@@ -72,6 +72,7 @@ flowchart TD
     %% Internal Microservices Routing
     APIGW -->|Cloud Map DNS :8080| CoreSvc
     APIGW -->|Cloud Map DNS :8081| CallSvc
+    CoreSvc <-->|Inter-service Routing :8080 / :8081| CallSvc
     CallSvc <-->|Room Lifecycle & Tokens| LiveKit
     CloudMap -.-> ECSCluster
 
@@ -142,8 +143,8 @@ Strict least-privilege firewall rules isolate each tier:
 | **`alb`** | TCP `80`, `443` | `0.0.0.0/0` (Internet) |
 | **`livekit`** | TCP `22` (SSH)<br/>TCP `80` (HTTP)<br/>TCP `443` (HTTPS)<br/>TCP `7880` (Signaling)<br/>TCP `7881` (RTC over TCP)<br/>TCP `7882` (TURN TLS)<br/>UDP `3478` (TURN UDP)<br/>UDP `50000-60000` (Media ICE Range) | `0.0.0.0/0` (Internet / WebRTC Clients) |
 | **`api_gateway`** | TCP `8000` | Security Group: `alb` |
-| **`core_service`** | TCP `8080` | Security Group: `api_gateway` |
-| **`call_service`** | TCP `8081` | Security Group: `api_gateway` |
+| **`core_service`** | TCP `8080` | Security Groups: `api_gateway`, `call_service` |
+| **`call_service`** | TCP `8081` | Security Groups: `api_gateway`, `core_service` |
 | **`rds`** | TCP `5432` | Security Groups: `core_service`, `call_service` |
 | **`redis`** | TCP `6379` | Security Groups: `api_gateway`, `call_service` |
 

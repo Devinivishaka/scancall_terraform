@@ -56,6 +56,7 @@ Contains the serverless **Amazon ECS Fargate Cluster** across both AZs:
   * Encapsulates core business domains: authentication, site configuration, call-points, and device permissions.
   * Communicates internally with the API Gateway and directly queries RDS PostgreSQL.
 * **Calling Service (Port 8081)**:
+  * Accepts inbound traffic from both the **API Gateway** and the **Core Service**.
   * Orchestrates call handshakes, rings, timeouts, and WebSocket notifications (`WS & Call Routing`).
   * Integrates with the LiveKit Media Server over WebSockets to provision call rooms, generate participant tokens, and track call lifecycle events.
 

@@ -65,9 +65,24 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 resource "aws_secretsmanager_secret_version" "app_secrets" {
   secret_id = aws_secretsmanager_secret.app_secrets.id
   secret_string = jsonencode({
-    jwt_secret         = random_password.jwt_secret.result
-    internal_api_key   = random_password.internal_api_key.result
-    livekit_api_key    = random_string.livekit_api_key.result
-    livekit_api_secret = random_password.livekit_api_secret.result
+    internal_api_key     = var.internal_api_key != "" ? var.internal_api_key : random_password.internal_api_key.result
+    jwt_secret           = var.jwt_secret != "" ? var.jwt_secret : random_password.jwt_secret.result
+    livekit_api_key      = var.livekit_api_key != "" ? var.livekit_api_key : random_string.livekit_api_key.result
+    livekit_api_secret   = var.livekit_api_secret != "" ? var.livekit_api_secret : random_password.livekit_api_secret.result
+    SERVICE_ACCOUNT_PATH = var.service_account_path != "" ? var.service_account_path : "{}"
+    APNS_AUTH_KEY        = var.apns_auth_key != "" ? var.apns_auth_key : ""
+    APNS_TEAM_ID         = var.apns_team_id != "" ? var.apns_team_id : ""
+    APNS_KEY_ID          = var.apns_key_id != "" ? var.apns_key_id : ""
+    APNS_BUNDLE_ID       = var.apns_bundle_id != "" ? var.apns_bundle_id : "com.protonest.scancall"
+    APNS_HOST            = var.apns_host != "" ? var.apns_host : "https://api.push.apple.com"
+    AWS_ACCESS_KEY       = var.app_aws_access_key != "" ? var.app_aws_access_key : ""
+    AWS_SECRET_KEY       = var.app_aws_secret_key != "" ? var.app_aws_secret_key : ""
+    SMS_API_KEY          = var.sms_api_key != "" ? var.sms_api_key : ""
+    RELAY_API_KEY        = var.relay_api_key != "" ? var.relay_api_key : ""
   })
+
+  # Prevent Terraform from overwriting secrets updated via AWS Console, CLI, or CI/CD
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
 }
