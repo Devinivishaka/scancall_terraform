@@ -64,7 +64,7 @@ terraform/
 ├── vpc.tf                     # 2-AZ VPC, subnets, IGW, NAT Gateways, route tables
 ├── security_groups.tf         # Microservice isolation security groups
 ├── secrets.tf                 # AWS Secrets Manager & dynamic credentials
-├── rds_aurora.tf              # RDS PostgreSQL Instance & Subnet Group
+├── rds_postgres.tf            # RDS PostgreSQL Instance & Subnet Group
 ├── ecr.tf                     # ECR repositories & lifecycle policies
 ├── ecs_cluster.tf             # ECS Cluster, Cloud Map private DNS, IAM roles
 ├── ecs_services.tf            # ECS Fargate task definitions & services

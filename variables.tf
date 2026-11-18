@@ -72,6 +72,12 @@ variable "db_master_password" {
   sensitive   = true
 }
 
+variable "db_instance_class" {
+  description = "RDS instance class (e.g. db.t4g.micro, db.t4g.small, db.t3.medium)"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
 # --- SSH Key ---
 variable "ssh_public_key" {
   description = "Optional SSH public key for the LiveKit EC2 instance. Leave empty to auto-generate."

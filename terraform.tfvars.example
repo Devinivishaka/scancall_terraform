@@ -16,6 +16,7 @@ single_nat_gateway = false
 # ---- Database ----
 db_name            = "scancall_database"
 db_master_username = "scancalladmin"
+db_instance_class  = "db.t4g.micro" # e.g. db.t4g.micro, db.t4g.small, db.t3.medium
 # Password is auto-generated and stored in Secrets Manager.
 # db_master_password = "" # Optional: specify custom password or leave commented for auto-generation
 

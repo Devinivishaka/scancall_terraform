@@ -14,7 +14,7 @@ resource "aws_db_instance" "postgres" {
   identifier             = "${var.project_name}-postgres-${var.environment}"
   engine                 = "postgres"
   engine_version         = "18"
-  instance_class         = local.rds_instance_class[var.environment]
+  instance_class         = var.db_instance_class
   
   # Storage
   allocated_storage      = 20
