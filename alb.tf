@@ -28,11 +28,11 @@ resource "aws_lb_target_group" "api_gateway" {
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
-  # Sticky sessions — needed for WebSocket connections
+  # Sticky sessions — disabled in live system to ensure even load distribution
   stickiness {
     type            = "lb_cookie"
     cookie_duration = 86400
-    enabled         = true
+    enabled         = false
   }
 
   health_check {
@@ -58,8 +58,8 @@ resource "aws_lb_target_group" "api_gateway" {
 
 # ---------------------------------------------------------------------------
 # HTTP Listener (Port 80)
-# When a domain is configured: redirects to HTTPS
-# When no domain:              forwards directly to API Gateway target group
+# Default action: forwards directly to API Gateway target group (matches dev)
+# Can optionally be set to redirect to HTTPS:443 via var.redirect_http_to_https
 # ---------------------------------------------------------------------------
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
@@ -67,11 +67,10 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type = var.domain_name != "" ? "redirect" : "forward"
+    type = var.redirect_http_to_https ? "redirect" : "forward"
 
-    # Redirect block — only present when domain is set
     dynamic "redirect" {
-      for_each = var.domain_name != "" ? [1] : []
+      for_each = var.redirect_http_to_https ? [1] : []
       content {
         port        = "443"
         protocol    = "HTTPS"
@@ -79,23 +78,27 @@ resource "aws_lb_listener" "http" {
       }
     }
 
-    # Forward — only set when there is NO redirect (null is valid when type = redirect)
-    target_group_arn = var.domain_name != "" ? null : aws_lb_target_group.api_gateway.arn
+    target_group_arn = var.redirect_http_to_https ? null : aws_lb_target_group.api_gateway.arn
   }
 }
 
 # ---------------------------------------------------------------------------
-# Optional: HTTPS Listener + ACM Certificate + Route 53 record
-# Only created when var.domain_name is non-empty
+# HTTPS Listener + ACM Certificate + Route 53 record
+# Uses var.certificate_arn if provided, or provisions & validates via Route 53 if domain_name is set
 # ---------------------------------------------------------------------------
+locals {
+  manage_acm = var.certificate_arn == "" && var.domain_name != ""
+  enable_https = var.certificate_arn != "" || var.domain_name != ""
+}
+
 data "aws_route53_zone" "selected" {
-  count        = var.domain_name != "" ? 1 : 0
+  count        = local.manage_acm ? 1 : 0
   name         = var.domain_name
   private_zone = false
 }
 
 resource "aws_acm_certificate" "cert" {
-  count             = var.domain_name != "" ? 1 : 0
+  count             = local.manage_acm ? 1 : 0
   domain_name       = var.domain_name
   validation_method = "DNS"
 
@@ -111,7 +114,7 @@ resource "aws_acm_certificate" "cert" {
 }
 
 resource "aws_route53_record" "cert_validation" {
-  for_each = var.domain_name != "" ? {
+  for_each = local.manage_acm ? {
     for dvo in aws_acm_certificate.cert[0].domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
@@ -128,18 +131,18 @@ resource "aws_route53_record" "cert_validation" {
 }
 
 resource "aws_acm_certificate_validation" "cert" {
-  count                   = var.domain_name != "" ? 1 : 0
+  count                   = local.manage_acm ? 1 : 0
   certificate_arn         = aws_acm_certificate.cert[0].arn
   validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
 }
 
 resource "aws_lb_listener" "https" {
-  count             = var.domain_name != "" ? 1 : 0
+  count             = local.enable_https ? 1 : 0
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = aws_acm_certificate_validation.cert[0].certificate_arn
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09"
+  certificate_arn   = var.certificate_arn != "" ? var.certificate_arn : aws_acm_certificate_validation.cert[0].certificate_arn
 
   default_action {
     type             = "forward"
@@ -148,7 +151,7 @@ resource "aws_lb_listener" "https" {
 }
 
 resource "aws_route53_record" "alb_alias" {
-  count   = var.domain_name != "" ? 1 : 0
+  count   = var.domain_name != "" && local.manage_acm ? 1 : 0
   zone_id = data.aws_route53_zone.selected[0].zone_id
   name    = var.domain_name
   type    = "A"

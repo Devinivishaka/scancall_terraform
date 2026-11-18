@@ -87,6 +87,18 @@ variable "domain_name" {
   default     = ""
 }
 
+variable "certificate_arn" {
+  description = "Optional pre-existing ACM Certificate ARN. If set, ALB HTTPS listener attaches directly to it without creating/validating a new cert in Route 53."
+  type        = string
+  default     = ""
+}
+
+variable "redirect_http_to_https" {
+  description = "Redirect HTTP:80 to HTTPS:443. Set to false to forward HTTP directly to the target group (as in dev)."
+  type        = bool
+  default     = false
+}
+
 variable "livekit_url" {
   description = "Optional custom LiveKit WebSocket URL (e.g. wss://media.scancalldev.protonestpcb.store). If empty, auto-derived from domain or EIP."
   type        = string

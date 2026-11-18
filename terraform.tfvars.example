@@ -26,8 +26,10 @@ ssh_public_key = ""
 
 # ---- Domain & SSL ----
 # Leave empty to use plain HTTP via the ALB DNS name (fine for dev)
-# For staging/prod: set to your Route53-managed domain e.g. "api.scancall.com"
-domain_name = ""
+# For staging/prod: set to your domain (e.g. "scancalldev.protonestpcb.store")
+domain_name     = ""
+certificate_arn = "" # Paste ACM cert ARN if already created (e.g. "arn:aws:acm:eu-west-1:...:certificate/...")
+redirect_http_to_https = false # Set to true to enforce HTTPS redirection on port 80
 
 # ---- WAF (set to true for staging/prod) ----
 enable_waf = false
