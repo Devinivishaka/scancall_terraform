@@ -20,10 +20,11 @@ db_instance_class  = "db.t4g.micro" # e.g. db.t4g.micro, db.t4g.small, db.t3.med
 # Password is auto-generated and stored in Secrets Manager.
 # db_master_password = "" # Optional: specify custom password or leave commented for auto-generation
 
-# ---- SSH Key (LiveKit EC2) ----
+# ---- SSH Key & Compute (LiveKit EC2) ----
 # Leave empty to auto-generate a .pem file in terraform/
 # Or paste your public key: ssh_public_key = "ssh-rsa AAAA..."
-ssh_public_key = ""
+ssh_public_key        = ""
+# livekit_instance_type = "t3.small" # Optional: override default instance type (prod defaults to t3.large)
 
 # ---- Domain & SSL ----
 # Set to your production domain and ACM certificate

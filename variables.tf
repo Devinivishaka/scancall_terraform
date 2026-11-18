@@ -78,12 +78,18 @@ variable "db_instance_class" {
   default     = "db.t4g.micro"
 }
 
-# --- SSH Key ---
+# --- SSH Key & Compute (LiveKit EC2) ---
 variable "ssh_public_key" {
   description = "Optional SSH public key for the LiveKit EC2 instance. Leave empty to auto-generate."
   type        = string
   default     = ""
   sensitive   = true
+}
+
+variable "livekit_instance_type" {
+  description = "Optional EC2 instance type for LiveKit (e.g. t3.small, t3.medium, t3.large). If empty, auto-selected per environment."
+  type        = string
+  default     = ""
 }
 
 # --- Domain & SSL ---

@@ -48,7 +48,7 @@ data "aws_ami" "ubuntu" {
 # ---------------------------------------------------------------------------
 resource "aws_instance" "livekit" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = local.livekit_instance_type[var.environment]
+  instance_type               = var.livekit_instance_type != "" ? var.livekit_instance_type : local.livekit_instance_type[var.environment]
   subnet_id                   = aws_subnet.public[0].id
   vpc_security_group_ids      = [aws_security_group.livekit.id]
   key_name                    = aws_key_pair.livekit.key_name
@@ -61,7 +61,11 @@ resource "aws_instance" "livekit" {
     encrypted             = true
   }
 
-
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "optional" # Supports both IMDSv1 and IMDSv2 (matches live setup)
+    http_put_response_hop_limit = 1
+  }
 
   tags = {
     Name = "${var.project_name}-livekit-ec2-${var.environment}"
