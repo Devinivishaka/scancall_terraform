@@ -12,7 +12,7 @@ Production-grade Infrastructure as Code (IaC) for ScanCall, deploying:
 - **AWS Secrets Manager**: Secure, encrypted credential store for database master passwords, JWT secrets, LiveKit credentials, and internal API keys.
 - **EC2 VM (LiveKit Media Server)**: Public-facing Ubuntu 22.04 VM with an Elastic IP, configured security groups, and automated Docker cloud-init setup running LiveKit WebRTC server.
 - **AWS ECR Repositories**: Container image registries with automated scanning and lifecycle policies.
-- **Route53 & ACM (Optional)**: Managed SSL certificates and DNS routing.
+- **ACM SSL & External DNS**: SSL/TLS certificate termination on the ALB, compatible with any DNS provider (Cloudflare, GoDaddy, Route 53, etc.).
 
 ---
 
@@ -20,8 +20,8 @@ Production-grade Infrastructure as Code (IaC) for ScanCall, deploying:
 
 ```mermaid
 graph TD
-    Client[Internet Clients / Mobile App / Web] --> Route53[Route53 / DNS]
-    Route53 --> ALB[Application Load Balancer (Public Subnets)]
+    Client[Internet Clients / Mobile App / Web] --> DNS[External DNS Provider]
+    DNS --> ALB[Application Load Balancer (Public Subnets)]
     
     subgraph Public Subnets [Public Subnets (AZ1 & AZ2)]
         ALB

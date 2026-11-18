@@ -16,7 +16,7 @@ flowchart TD
 
     %% Edge & Network Perimeter
     subgraph Edge["Perimeter & Security Layer"]
-        Route53["Amazon Route 53 (DNS)"]
+        DNS["External DNS (Domain CNAME / Alias)"]
         ACM["AWS Certificate Manager (SSL/TLS)"]
         IGW["Internet Gateway"]
     end
@@ -58,8 +58,8 @@ flowchart TD
     end
 
     %% HTTP / HTTPS Ingress Flow
-    WebClients -->|HTTPS :443| Route53
-    Route53 --> ALB
+    WebClients -->|HTTPS :443| DNS
+    DNS --> ALB
     ACM -.->|TLS Termination| ALB
     ALB -->|Forward :8000| APIGW
 
@@ -92,7 +92,7 @@ flowchart TD
 
 | Layer | Component | Sizing & Configuration | Redundancy & High Availability |
 | :--- | :--- | :--- | :--- |
-| **DNS & Perimeter** | **Route 53 & ACM** | Managed Anycast DNS | Automated SSL/TLS certificate renewal |
+| **DNS & Perimeter** | **ACM & Domain Mapping** | SSL/TLS Termination at ALB | External DNS CNAME / ALIAS to ALB hostname |
 | | **Application Load Balancer** | Layer 7 Dual-AZ Ingress | Spans Public Subnet 1 & Public Subnet 2 |
 | **Networking** | **NAT Gateways** | Dual NAT Gateways (1 per AZ) with dedicated Elastic IPs | Independent egress routing per AZ (no cross-AZ outage impact) |
 | **Media Server** | **LiveKit Server** | EC2 `t3.large` (2 vCPU, 8 GB RAM) + Dedicated EIP | Ubuntu 22.04 LTS, Docker host, systemd recovery |

@@ -83,82 +83,19 @@ resource "aws_lb_listener" "http" {
 }
 
 # ---------------------------------------------------------------------------
-# HTTPS Listener + ACM Certificate + Route 53 record
-# Uses var.certificate_arn if provided, or provisions & validates via Route 53 if domain_name is set
+# HTTPS Listener (Port 443)
+# Enabled when var.certificate_arn is provided
 # ---------------------------------------------------------------------------
-locals {
-  manage_acm = var.certificate_arn == "" && var.domain_name != ""
-  enable_https = var.certificate_arn != "" || var.domain_name != ""
-}
-
-data "aws_route53_zone" "selected" {
-  count        = local.manage_acm ? 1 : 0
-  name         = var.domain_name
-  private_zone = false
-}
-
-resource "aws_acm_certificate" "cert" {
-  count             = local.manage_acm ? 1 : 0
-  domain_name       = var.domain_name
-  validation_method = "DNS"
-
-  subject_alternative_names = ["*.${var.domain_name}"]
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = {
-    Name = "${var.project_name}-cert-${var.environment}"
-  }
-}
-
-resource "aws_route53_record" "cert_validation" {
-  for_each = local.manage_acm ? {
-    for dvo in aws_acm_certificate.cert[0].domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  } : {}
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = data.aws_route53_zone.selected[0].zone_id
-}
-
-resource "aws_acm_certificate_validation" "cert" {
-  count                   = local.manage_acm ? 1 : 0
-  certificate_arn         = aws_acm_certificate.cert[0].arn
-  validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
-}
-
 resource "aws_lb_listener" "https" {
-  count             = local.enable_https ? 1 : 0
+  count             = var.certificate_arn != "" ? 1 : 0
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09"
-  certificate_arn   = var.certificate_arn != "" ? var.certificate_arn : aws_acm_certificate_validation.cert[0].certificate_arn
+  certificate_arn   = var.certificate_arn
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.api_gateway.arn
-  }
-}
-
-resource "aws_route53_record" "alb_alias" {
-  count   = var.domain_name != "" && local.manage_acm ? 1 : 0
-  zone_id = data.aws_route53_zone.selected[0].zone_id
-  name    = var.domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_lb.main.dns_name
-    zone_id                = aws_lb.main.zone_id
-    evaluate_target_health = true
   }
 }
