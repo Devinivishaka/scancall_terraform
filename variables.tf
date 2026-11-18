@@ -54,15 +54,22 @@ variable "single_nat_gateway" {
 
 # --- Database ---
 variable "db_name" {
-  description = "Aurora PostgreSQL database name"
+  description = "PostgreSQL database name"
   type        = string
-  default     = "scancall_phase1"
+  default     = "scancall_database"
 }
 
 variable "db_master_username" {
-  description = "Aurora PostgreSQL master username"
+  description = "PostgreSQL master username"
   type        = string
   default     = "scancalladmin"
+}
+
+variable "db_master_password" {
+  description = "Optional master password for RDS PostgreSQL. Leave empty to auto-generate a secure 24-character password."
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 # --- SSH Key ---

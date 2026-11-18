@@ -43,12 +43,17 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
   secret_string = jsonencode({
     username = var.db_master_username
-    password = random_password.db_master_password.result
+    password = var.db_master_password != "" ? var.db_master_password : random_password.db_master_password.result
     dbname   = var.db_name
     engine   = "postgres"
     port     = 5432
     host     = aws_db_instance.postgres.endpoint
   })
+
+  # Prevent Terraform from overwriting database password rotations
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
 }
 
 # Application Secrets Manager Secret

@@ -14,9 +14,10 @@ vpc_cidr      = "10.0.0.0/16"
 single_nat_gateway = true
 
 # ---- Database ----
-db_name            = "scancall_phase1"
+db_name            = "scancall_database"
 db_master_username = "scancalladmin"
-# Password is auto-generated and stored in Secrets Manager — no need to set it here
+# Password is auto-generated and stored in Secrets Manager.
+# db_master_password = "" # Optional: specify custom password or leave commented for auto-generation
 
 # ---- SSH Key (LiveKit EC2) ----
 # Leave empty to auto-generate a .pem file in terraform/
