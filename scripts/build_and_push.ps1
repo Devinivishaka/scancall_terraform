@@ -15,7 +15,7 @@
 [CmdletBinding()]
 param (
     [string]$Region = "eu-west-1",
-    [string]$Environment = "dev",
+    [string]$Environment = "prod",
     [switch]$RedeployECS = $true
 )
 

@@ -2,7 +2,7 @@
 set -eo pipefail
 
 REGION="${AWS_REGION:-eu-west-1}"
-ENVIRONMENT="${ENV:-dev}"
+ENVIRONMENT="${ENV:-prod}"
 REDEPLOY="${REDEPLOY:-true}"
 
 echo "=========================================================="

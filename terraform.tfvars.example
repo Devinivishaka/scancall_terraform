@@ -1,17 +1,17 @@
 # =========================================================
-# ScanCall — Dev Environment Terraform Variables
+# ScanCall — Production Environment Terraform Variables
 # =========================================================
 # Copy this file to terraform.tfvars and fill in your values.
 # DO NOT commit terraform.tfvars to version control.
 
-aws_region   = "eu-west-1"  # Ireland — your existing AWS account region
-environment  = "dev"
+aws_region   = "eu-west-1"  # Ireland — matches your AWS account
+environment  = "prod"
 project_name = "scancall"
 
 # ---- Networking ----
-vpc_cidr      = "10.0.0.0/16"
-# true = single NAT Gateway (saves ~$30/month in dev; use false for staging/prod HA)
-single_nat_gateway = true
+vpc_cidr           = "10.0.0.0/16"
+# false = redundant Dual NAT Gateways across AZ1 and AZ2 for Production High Availability
+single_nat_gateway = false
 
 # ---- Database ----
 db_name            = "scancall_database"
@@ -25,11 +25,19 @@ db_master_username = "scancalladmin"
 ssh_public_key = ""
 
 # ---- Domain & SSL ----
-# Leave empty to use plain HTTP via the ALB DNS name (fine for dev)
-# For staging/prod: set to your domain (e.g. "scancalldev.protonestpcb.store")
-domain_name     = ""
-certificate_arn = "" # Paste ACM cert ARN if already created (e.g. "arn:aws:acm:eu-west-1:...:certificate/...")
-redirect_http_to_https = false # Set to true to enforce HTTPS redirection on port 80
+# Set to your production domain and ACM certificate
+domain_name            = ""
+certificate_arn        = "" # Paste ACM cert ARN (e.g. "arn:aws:acm:eu-west-1:...:certificate/...")
+redirect_http_to_https = true # Enforce HTTPS redirection in production
+
+# ---- LiveKit WebRTC ----
+# livekit_url = "wss://media.scancall.com"
+
+# ---- Application URLs (Update with production frontend domains) ----
+# cors_allowed_origins     = "https://app.scancall.com,https://admin.scancall.com"
+# admin_frontend_url       = "https://admin.scancall.com"
+# frontend_url             = "https://app.scancall.com"
+# super_admin_frontend_url = "https://superadmin.scancall.com"
 
 # ---- Optional Application Secrets ----
 # Leave empty to let Terraform generate random keys or manage them directly in AWS Secrets Manager.

@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "environment" {
   description = "Environment identifier: dev, staging, or prod"
   type        = string
-  default     = "dev"
+  default     = "prod"
 
   validation {
     condition     = contains(["dev", "staging", "prod"], var.environment)
@@ -49,7 +49,7 @@ variable "private_data_subnet_cidrs" {
 variable "single_nat_gateway" {
   description = "Use a single NAT Gateway (true = cost-saving for dev, false = HA for prod)"
   type        = bool
-  default     = true
+  default     = false
 }
 
 # --- Database ---
@@ -94,9 +94,9 @@ variable "certificate_arn" {
 }
 
 variable "redirect_http_to_https" {
-  description = "Redirect HTTP:80 to HTTPS:443. Set to false to forward HTTP directly to the target group (as in dev)."
+  description = "Redirect HTTP:80 to HTTPS:443 (recommended true for production)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "livekit_url" {
