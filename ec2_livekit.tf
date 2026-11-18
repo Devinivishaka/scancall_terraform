@@ -73,13 +73,18 @@ resource "aws_instance" "livekit" {
   }
 }
 
-# Elastic IP — fixed public address for LiveKit (must not change between deploys)
+# Elastic IP — fixed permanent public address for LiveKit (never changes)
 resource "aws_eip" "livekit" {
-  instance   = aws_instance.livekit.id
   domain     = "vpc"
   depends_on = [aws_internet_gateway.igw]
 
   tags = {
     Name = "${var.project_name}-livekit-eip-${var.environment}"
   }
+}
+
+# Decoupled association ensures the Elastic IP is never recreated even if the EC2 VM is replaced
+resource "aws_eip_association" "livekit" {
+  instance_id   = aws_instance.livekit.id
+  allocation_id = aws_eip.livekit.id
 }
