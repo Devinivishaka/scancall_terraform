@@ -31,9 +31,6 @@ domain_name     = ""
 certificate_arn = "" # Paste ACM cert ARN if already created (e.g. "arn:aws:acm:eu-west-1:...:certificate/...")
 redirect_http_to_https = false # Set to true to enforce HTTPS redirection on port 80
 
-# ---- WAF (set to true for staging/prod) ----
-enable_waf = false
-
 # ---- Optional Application Secrets ----
 # Leave empty to let Terraform generate random keys or manage them directly in AWS Secrets Manager.
 # Do NOT commit production secrets to Git.

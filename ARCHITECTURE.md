@@ -18,7 +18,6 @@ flowchart TD
     subgraph Edge["Perimeter & Security Layer"]
         Route53["Amazon Route 53 (DNS)"]
         ACM["AWS Certificate Manager (SSL/TLS)"]
-        WAF["AWS WAF (Web Application Firewall)"]
         IGW["Internet Gateway"]
     end
 
@@ -60,9 +59,8 @@ flowchart TD
 
     %% HTTP / HTTPS Ingress Flow
     WebClients -->|HTTPS :443| Route53
-    Route53 --> WAF
+    Route53 --> ALB
     ACM -.->|TLS Termination| ALB
-    WAF --> ALB
     ALB -->|Forward :8000| APIGW
 
     %% WebRTC Audio / Video Flow
@@ -95,7 +93,6 @@ flowchart TD
 | Layer | Component | Sizing & Configuration | Redundancy & High Availability |
 | :--- | :--- | :--- | :--- |
 | **DNS & Perimeter** | **Route 53 & ACM** | Managed Anycast DNS | Automated SSL/TLS certificate renewal |
-| | **AWS WAFv2** | AWS Managed Core Rule Set + Rate Limiting | Regional Web ACL attached directly to ALB |
 | | **Application Load Balancer** | Layer 7 Dual-AZ Ingress | Spans Public Subnet 1 & Public Subnet 2 |
 | **Networking** | **NAT Gateways** | Dual NAT Gateways (1 per AZ) with dedicated Elastic IPs | Independent egress routing per AZ (no cross-AZ outage impact) |
 | **Media Server** | **LiveKit Server** | EC2 `t3.large` (2 vCPU, 8 GB RAM) + Dedicated EIP | Ubuntu 22.04 LTS, Docker host, systemd recovery |
@@ -170,8 +167,7 @@ private_data_subnet_cidrs = ["10.0.20.0/24", "10.0.21.0/24"]
 # Provision dedicated NAT Gateways across both AZs
 single_nat_gateway = false
 
-# Web Application Firewall & Custom Domain
-enable_waf  = true
+# Custom Domain & SSL
 domain_name = "api.yourdomain.com"
 
 # Database Details

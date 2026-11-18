@@ -12,7 +12,7 @@ Production-grade Infrastructure as Code (IaC) for ScanCall, deploying:
 - **AWS Secrets Manager**: Secure, encrypted credential store for database master passwords, JWT secrets, LiveKit credentials, and internal API keys.
 - **EC2 VM (LiveKit Media Server)**: Public-facing Ubuntu 22.04 VM with an Elastic IP, configured security groups, and automated Docker cloud-init setup running LiveKit WebRTC server.
 - **AWS ECR Repositories**: Container image registries with automated scanning and lifecycle policies.
-- **AWS WAFv2 & Route53/ACM (Optional)**: Web application firewall protection and managed SSL certificates.
+- **Route53 & ACM (Optional)**: Managed SSL certificates and DNS routing.
 
 ---
 
@@ -20,7 +20,7 @@ Production-grade Infrastructure as Code (IaC) for ScanCall, deploying:
 
 ```mermaid
 graph TD
-    Client[Internet Clients / Mobile App / Web] --> Route53[Route53 + WAF]
+    Client[Internet Clients / Mobile App / Web] --> Route53[Route53 / DNS]
     Route53 --> ALB[Application Load Balancer (Public Subnets)]
     
     subgraph Public Subnets [Public Subnets (AZ1 & AZ2)]
@@ -69,7 +69,6 @@ terraform/
 ├── ecs_cluster.tf             # ECS Cluster, Cloud Map private DNS, IAM roles
 ├── ecs_services.tf            # ECS Fargate task definitions & services
 ├── alb.tf                     # Application Load Balancer, listeners, target groups
-├── waf.tf                     # Optional AWS WAFv2 Web ACL
 ├── ec2_livekit.tf             # LiveKit EC2 VM, Elastic IP, and cloud-init setup
 ├── scripts/
 │   ├── build_and_push.ps1     # Windows PowerShell automated build & push script

@@ -154,13 +154,6 @@ variable "sms_api_url" {
   default     = "https://ops.entryphone.co.uk/sms/api/v1/send_sms.aspx"
 }
 
-# --- WAF ---
-variable "enable_waf" {
-  description = "Enable AWS WAFv2 on the Application Load Balancer (recommended for staging & prod)"
-  type        = bool
-  default     = false
-}
-
 # --- Application Secrets (Leave empty to use defaults/auto-generation or manage via Secrets Manager) ---
 variable "internal_api_key" {
   description = "Shared internal API key across services. Leave empty to auto-generate."
