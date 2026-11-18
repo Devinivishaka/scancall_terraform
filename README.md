@@ -8,8 +8,7 @@ Production-grade Infrastructure as Code (IaC) for ScanCall, deploying:
   2. `scancall/core-service` (Port 8080)
   3. `scancall/call-service` (Port 8081)
 - **AWS Cloud Map (Service Discovery)**: Private DNS namespace (`scancall.local`) allowing internal microservices to communicate privately without public exposure.
-- **Amazon Aurora PostgreSQL Serverless v2**: Highly scalable, multi-AZ relational database.
-- **Amazon ElastiCache Redis**: Fast caching layer for rate limiting and real-time state.
+- **Amazon RDS PostgreSQL**: High-performance relational database with multi-AZ capability.
 - **AWS Secrets Manager**: Secure, encrypted credential store for database master passwords, JWT secrets, LiveKit credentials, and internal API keys.
 - **EC2 VM (LiveKit Media Server)**: Public-facing Ubuntu 22.04 VM with an Elastic IP, configured security groups, and automated Docker cloud-init setup running LiveKit WebRTC server.
 - **AWS ECR Repositories**: Container image registries with automated scanning and lifecycle policies.
@@ -37,18 +36,15 @@ graph TD
     end
 
     subgraph Private Data Subnets [Private Subnets (AZ1 & AZ2)]
-        Aurora[(Aurora PostgreSQL Serverless v2)]
-        Redis[(ElastiCache Redis 6379)]
+        Postgres[(Amazon RDS PostgreSQL)]
         SecretsMgr[AWS Secrets Manager]
     end
 
     ALB -->|Forward :8000| APIGW
     APIGW -->|Cloud Map :8080| CoreECS
     APIGW -->|Cloud Map :8081 / WebSocket| CallECS
-    CoreECS --> Aurora
-    CallECS --> Aurora
-    APIGW --> Redis
-    CallECS --> Redis
+    CoreECS --> Postgres
+    CallECS --> Postgres
     CallECS -.->|LiveKit Tokens/Signaling| LiveKit
     SecretsMgr -.->|Credentials Injection| APIGW
     SecretsMgr -.->|Credentials Injection| CoreECS
@@ -67,9 +63,8 @@ terraform/
 ├── terraform.tfvars.example   # Example variable values
 ├── vpc.tf                     # 2-AZ VPC, subnets, IGW, NAT Gateways, route tables
 ├── security_groups.tf         # Microservice isolation security groups
-├── secrets.tf                 # AWS Secrets Manager & random passwords
-├── rds_aurora.tf              # Aurora PostgreSQL Serverless v2
-├── elasticache.tf             # ElastiCache Redis cluster
+├── secrets.tf                 # AWS Secrets Manager & dynamic credentials
+├── rds_aurora.tf              # RDS PostgreSQL Instance & Subnet Group
 ├── ecr.tf                     # ECR repositories & lifecycle policies
 ├── ecs_cluster.tf             # ECS Cluster, Cloud Map private DNS, IAM roles
 ├── ecs_services.tf            # ECS Fargate task definitions & services
@@ -126,8 +121,7 @@ terraform apply
 Type `yes` when prompted. Terraform will output:
 - Application Load Balancer DNS name
 - ECR repository URLs
-- Aurora PostgreSQL endpoint
-- ElastiCache Redis endpoint
+- PostgreSQL database endpoint
 - LiveKit EC2 public IP & SSH command
 - Local private key file `scancall-livekit-key.pem`
 

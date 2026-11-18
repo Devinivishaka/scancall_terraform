@@ -47,7 +47,6 @@ flowchart TD
         %% Private Data Subnets
         subgraph DataSubnets["Private Data Subnets (Multi-AZ: AZ-1 & AZ-2)"]
             RDS[("Amazon RDS PostgreSQL<br/>db.t3.medium | GP3 Encrypted<br/>Auto-scaling 20-100 GB")]
-            Redis[("Amazon ElastiCache Redis<br/>cache.t4g.medium | Port: 6379")]
         end
     end
 
@@ -79,8 +78,6 @@ flowchart TD
     %% Data Layer Flow
     CoreSvc -->|SQL :5432| RDS
     CallSvc -->|SQL :5432| RDS
-    APIGW -->|Rate Limiting :6379| Redis
-    CallSvc -->|Session State :6379| Redis
 
     %% Outbound Egress & Platform Links
     AppSubnets -->|Egress via NAT| NAT1 & NAT2
@@ -107,7 +104,6 @@ flowchart TD
 | | **Call Service** | 2 Tasks &times; (1024 CPU units / 2048 MB RAM) | Auto-spread across AZ-1 and AZ-2 on AWS Fargate |
 | | **Service Discovery** | AWS Cloud Map Private DNS (`scancall.local`) | SRV/A record resolution within VPC |
 | **Persistence** | **Amazon RDS PostgreSQL** | `db.t3.medium` (PostgreSQL 18, GP3 20–100 GB) | 7-day retention, automated snapshots, deletion protection |
-| | **ElastiCache Redis** | `cache.t4g.medium` (Redis 7) | Multi-AZ subnet group, isolated private access |
 | **Security** | **Secrets Manager** | AES-256 KMS Encrypted Secrets | Auto-rotation, no secrets committed to codebase |
 
 ---
@@ -128,8 +124,8 @@ VPC CIDR: 10.0.0.0/16
 │   └── AZ-2: 10.0.11.0/24 ── ECS Fargate Tasks (API Gateway, Core, Call)
 │
 └── Private Data Subnets (Isolated — No Internet Ingress or Egress)
-    ├── AZ-1: 10.0.20.0/24 ── RDS PostgreSQL Instance, ElastiCache Node
-    └── AZ-2: 10.0.21.0/24 ── RDS Subnet Group, ElastiCache Subnet Group
+    ├── AZ-1: 10.0.20.0/24 ── RDS PostgreSQL Primary
+    └── AZ-2: 10.0.21.0/24 ── RDS Subnet Group
 ```
 
 ---
@@ -146,7 +142,6 @@ Strict least-privilege firewall rules isolate each tier:
 | **`core_service`** | TCP `8080` | Security Groups: `api_gateway`, `call_service` |
 | **`call_service`** | TCP `8081` | Security Groups: `api_gateway`, `core_service` |
 | **`rds`** | TCP `5432` | Security Groups: `core_service`, `call_service` |
-| **`redis`** | TCP `6379` | Security Groups: `api_gateway`, `call_service` |
 
 ---
 

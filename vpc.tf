@@ -45,7 +45,7 @@ resource "aws_subnet" "private_app" {
   }
 }
 
-# Private Data Subnets (Aurora & Redis)
+# Private Data Subnets (PostgreSQL)
 resource "aws_subnet" "private_data" {
   count             = 2
   vpc_id            = aws_vpc.main.id

@@ -28,11 +28,6 @@ output "postgres_database_name" {
   value       = aws_db_instance.postgres.db_name
 }
 
-output "redis_endpoint" {
-  description = "ElastiCache Redis hostname"
-  value       = aws_elasticache_cluster.redis.cache_nodes[0].address
-}
-
 output "secrets_db_credentials_arn" {
   description = "ARN of the Secrets Manager secret for DB credentials"
   value       = aws_secretsmanager_secret.db_credentials.arn

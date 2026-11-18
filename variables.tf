@@ -41,7 +41,7 @@ variable "private_app_subnet_cidrs" {
 }
 
 variable "private_data_subnet_cidrs" {
-  description = "CIDR blocks for private data subnets — Aurora & Redis (2 AZs)"
+  description = "CIDR blocks for private data subnets — RDS PostgreSQL (2 AZs)"
   type        = list(string)
   default     = ["10.0.20.0/24", "10.0.21.0/24"]
 }

@@ -22,8 +22,6 @@ resource "aws_ecs_task_definition" "api_gateway" {
 
       environment = [
         { name = "SERVER_PORT",          value = "8000" },
-        { name = "REDIS_HOST",           value = aws_elasticache_cluster.redis.cache_nodes[0].address },
-        { name = "REDIS_PORT",           value = "6379" },
         { name = "CORE_SERVICE_URL",     value = "http://core-service.${aws_service_discovery_private_dns_namespace.internal.name}:8080" },
         { name = "CALLING_SERVICE_URL",  value = "http://call-service.${aws_service_discovery_private_dns_namespace.internal.name}:8081" },
         { name = "CORS_ALLOWED_ORIGINS", value = var.cors_allowed_origins }

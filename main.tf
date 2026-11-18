@@ -86,13 +86,6 @@ locals {
     prod    = "db.t3.medium"
   }
 
-  # Redis node type per environment
-  redis_node_type = {
-    dev     = "cache.t4g.micro"
-    staging = "cache.t4g.small"
-    prod    = "cache.t4g.medium"
-  }
-
   # LiveKit EC2 instance type per environment
   livekit_instance_type = {
     dev     = "t3.small"
